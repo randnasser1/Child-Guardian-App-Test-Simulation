@@ -1,0 +1,5 @@
+appium-python-client==2.11.1
+selenium==4.15.0
+schedule==1.2.0
+requests==2.31.0
+pickle5==0.0.11

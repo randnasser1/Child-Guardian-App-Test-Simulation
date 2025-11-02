@@ -1,0 +1,22 @@
+{
+  "child_account": {
+    "platformName": "Android",
+    "platformVersion": "13",
+    "deviceName": "Android Emulator",
+    "appPackage": "com.instagram.android",
+    "appActivity": "com.instagram.android.activity.MainTabActivity",
+    "automationName": "UiAutomator2",
+    "noReset": true,
+    "newCommandTimeout": 300
+  },
+  "groomer_account": {
+    "platformName": "Android",
+    "platformVersion": "13",
+    "deviceName": "Android Emulator",
+    "appPackage": "com.instagram.android",
+    "appActivity": "com.instagram.android.activity.MainTabActivity",
+    "automationName": "UiAutomator2",
+    "noReset": true,
+    "newCommandTimeout": 300
+  }
+}
