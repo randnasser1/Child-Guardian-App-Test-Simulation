@@ -17,42 +17,42 @@ class GroomerAgent:
             'relationship_words': 0
         }
 
-    def generate_message(self, received_message=None):
-        if self.daily_count >= 40:
-            raise Exception("Groomer daily message limit reached")
+    # In groomer_agent.py - update the generate_message method
+def generate_message(self, received_message=None):
+    if self.daily_count >= 40:
+        raise Exception("Groomer daily message limit reached")
 
-        self.message_count += 1
-        self.daily_count += 1
+    self.message_count += 1
+    self.daily_count += 1
 
-        if received_message:
-            self.conversation_history.append(f"Child: {received_message}")
+    if received_message:
+        self.conversation_history.append(f"Child: {received_message}")
 
-        # Determine grooming stage
-        stage = "FRIENDSHIP" if self.message_count < 50 else "SECRECY" if self.message_count < 100 else "MEETUP"
+    # Determine grooming stage
+    stage = "FRIENDSHIP" if self.message_count < 50 else "SECRECY" if self.message_count < 100 else "MEETUP"
 
-        prompt = f"""
-        {GROOMER_SYSTEM_PROMPT}
+    prompt = f"""
+    {GROOMER_SYSTEM_PROMPT}
 
-        CURRENT STAGE: {stage}
-        TOTAL MESSAGES: {self.message_count}
-        TIME: {['morning','afternoon','evening','night'][datetime.now().hour//6]}
+    CURRENT STAGE: {stage}
+    TOTAL MESSAGES: {self.message_count}
+    TIME: {['morning','afternoon','evening','night'][datetime.now().hour//6]}
 
-        Recent conversation:
-        {' '.join(self.conversation_history[-4:])}
+    Recent conversation:
+    {' '.join(self.conversation_history[-4:])}
 
-        {"Child just said: " + received_message if received_message else "Start a new conversation topic:"}
+    {"Child just said: " + received_message if received_message else "Start a new conversation topic:"}
 
-        Victor's response (continue grooming strategy):
-        """
+    Victor's response (continue grooming strategy for this stage):
+    """
 
-        response = self.ollama_generate(prompt)
-        self.conversation_history.append(f"Jake: {response}")
+    response = self.ollama_generate(prompt)
+    self.conversation_history.append(f"Victor: {response}")
 
-        # Track psychological metrics
-        self.track_metrics(response)
+    # Track psychological metrics
+    self.track_metrics(response)
 
-        return response
-
+    return response
     def ollama_generate(self, prompt):
         """Generate response using local Ollama"""
         try:
@@ -92,3 +92,4 @@ class GroomerAgent:
 
     def get_metrics(self):
         return self.psychological_metrics
+
