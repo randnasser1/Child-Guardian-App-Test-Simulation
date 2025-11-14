@@ -1,4 +1,4 @@
-# instagram_bot_precise.py
+# instagram_bot.py - UPDATED VERSION
 from appium import webdriver
 from appium.webdriver.common.appiumby import AppiumBy
 from appium.options.android import UiAutomator2Options
@@ -12,6 +12,7 @@ class InstagramBot:
         try:
             logging.basicConfig(level=logging.INFO)
             self.logger = logging.getLogger(__name__)
+            self.account_type = account_type  # Store account type
 
             # Load capabilities
             with open('appium_bot/capabilities.json', 'r') as f:
@@ -28,43 +29,27 @@ class InstagramBot:
             options.no_reset = caps.get("noReset", True)
 
             self.driver = webdriver.Remote('http://127.0.0.1:4723', options=options)
-            self.account_type = account_type
-            self.logger.info("✅ Appium driver initialized!")
+            self.logger.info(f"✅ Appium driver initialized for {account_type}!")
             time.sleep(8)
 
         except Exception as e:
-            self.logger.error(f"Failed to initialize: {e}")
+            self.logger.error(f"Failed to initialize {account_type}: {e}")
             raise
 
-    def find_and_click(self, selectors, timeout=10):
-        """Try multiple selectors to find and click an element"""
-        for by, selector in selectors:
-            try:
-                element = self.driver.find_element(by, selector)
-                element.click()
-                self.logger.info(f"✅ Clicked: {selector}")
-                return True
-            except:
-                continue
-        return False
-
     def navigate_to_chat(self, target_username):
-        """Navigate to chat using REAL element IDs from your exploration"""
+        """Navigate to chat - FIXED: Uses account_type for logging"""
         try:
-            self.logger.info(f"🚀 Navigating to chat with {target_username}")
+            self.logger.info(f"🚀 {self.account_type} navigating to chat with {target_username}")
 
-            # Step 1: Click Messages button (from home screen)
+            # Step 1: Click Messages button
             messages_selectors = [
-                # Use the exact resource ID from your exploration
                 (AppiumBy.ID, "com.instagram.android:id/action_bar_inbox_button"),
-                # Or the accessibility ID
                 (AppiumBy.ACCESSIBILITY_ID, "No unread messages"),
-                # Or the bottom nav messages
                 (AppiumBy.XPATH, "//android.widget.FrameLayout[@content-desc='No unread messages']"),
             ]
 
             if not self.find_and_click(messages_selectors):
-                self.logger.error("❌ Could not find messages button")
+                self.logger.error(f"❌ {self.account_type} could not find messages button")
                 return False
             time.sleep(3)
 
@@ -76,29 +61,27 @@ class InstagramBot:
             ]
 
             if not self.find_and_click(search_selectors):
-                self.logger.error("❌ Could not find search box")
+                self.logger.error(f"❌ {self.account_type} could not find search box")
                 return False
             time.sleep(2)
 
-            # Step 3: Type username
+            # Step 3: Type the target username (DIFFERENT for each account)
             self.driver.execute_script('mobile: type', {'text': target_username})
             time.sleep(3)
 
             # Step 4: Click the user from search results
             user_selectors = [
-                # Look for the username in the results
                 (AppiumBy.XPATH, f"//android.widget.TextView[@text='{target_username}']"),
                 (AppiumBy.XPATH, f"//*[contains(@text, '{target_username}')]"),
-                # Or tap the user container
                 (AppiumBy.ID, "com.instagram.android:id/row_inbox_container"),
             ]
 
             if not self.find_and_click(user_selectors):
-                self.logger.error("❌ Could not find user in results")
+                self.logger.error(f"❌ {self.account_type} could not find user {target_username} in results")
                 return False
             time.sleep(3)
 
-            # Step 5: We should now be in the chat - verify
+            # Step 5: Verify we're in chat
             chat_indicators = [
                 (AppiumBy.ID, "com.instagram.android:id/row_thread_composer_edittext"),
                 (AppiumBy.ACCESSIBILITY_ID, "Voice message, press and hold to record"),
@@ -107,23 +90,35 @@ class InstagramBot:
             for by, selector in chat_indicators:
                 try:
                     self.driver.find_element(by, selector)
-                    self.logger.info("✅ Successfully in chat!")
+                    self.logger.info(f"✅ {self.account_type} successfully in chat with {target_username}!")
                     return True
                 except:
                     continue
 
-            self.logger.error("❌ Not in chat screen")
+            self.logger.error(f"❌ {self.account_type} not in chat screen")
             return False
 
         except Exception as e:
-            self.logger.error(f"Navigation error: {e}")
+            self.logger.error(f"❌ {self.account_type} navigation error: {e}")
             return False
 
+    def find_and_click(self, selectors, timeout=10):
+        """Try multiple selectors to find and click an element"""
+        for by, selector in selectors:
+            try:
+                element = self.driver.find_element(by, selector)
+                element.click()
+                self.logger.info(f"✅ {self.account_type} clicked: {selector}")
+                return True
+            except:
+                continue
+        return False
+
     def send_message(self, text, max_attempts=3):
-        """Send message using the exact message input element"""
+        """Send message - FIXED: Uses account_type for logging"""
         for attempt in range(max_attempts):
             try:
-                self.logger.info(f"Attempt {attempt + 1} to send: {text}")
+                self.logger.info(f"💬 {self.account_type} attempt {attempt + 1} to send: {text}")
 
                 # Find and click the message input
                 input_selectors = [
@@ -133,7 +128,7 @@ class InstagramBot:
                 ]
 
                 if not self.find_and_click(input_selectors):
-                    self.logger.error("❌ Could not find message input")
+                    self.logger.error(f"❌ {self.account_type} could not find message input")
                     continue
                 time.sleep(1)
 
@@ -143,10 +138,8 @@ class InstagramBot:
 
                 # Find and click send button
                 send_selectors = [
-                    # The send button is usually near the message input
                     (AppiumBy.ACCESSIBILITY_ID, "Send"),
                     (AppiumBy.XPATH, "//android.widget.Button[contains(@content-desc, 'Send')]"),
-                    # Sometimes it's the paper plane icon in the input area
                     (AppiumBy.ID, "com.instagram.android:id/row_thread_composer_button_send"),
                 ]
 
@@ -160,49 +153,12 @@ class InstagramBot:
                     return True
 
             except Exception as e:
-                self.logger.warning(f"Attempt {attempt + 1} failed: {e}")
+                self.logger.warning(f"❌ {self.account_type} attempt {attempt + 1} failed: {e}")
                 time.sleep(2)
 
         return False
 
-    def quick_send(self, text):
-        """Quick message sending for simple texts"""
-        try:
-            # Directly target the message input
-            message_input = self.driver.find_element(
-                AppiumBy.ID, "com.instagram.android:id/row_thread_composer_edittext"
-            )
-            message_input.click()
-            time.sleep(0.5)
-            message_input.send_keys(text)
-            time.sleep(0.5)
-
-            # Try to find and click send button
-            try:
-                send_btn = self.driver.find_element(
-                    AppiumBy.ID, "com.instagram.android:id/row_thread_composer_button_send"
-                )
-                send_btn.click()
-            except:
-                # Fallback: press enter
-                self.driver.press_keycode(66)
-
-            self.logger.info(f"✅ Quick sent: {text}")
-
-        except Exception as e:
-            self.logger.error(f"Quick send failed: {e}")
-
     def quit(self):
         if self.driver:
             self.driver.quit()
-
-# Test it
-if __name__ == "__main__":
-    bot = InstagramBot("child_account")
-    try:
-        if bot.navigate_to_chat("victorhalloway12"):
-            bot.send_message("Hello from the precise bot! 🎯")
-            time.sleep(2)
-            bot.quick_send("This should work perfectly! 🚀")
-    finally:
-        bot.quit()
+            self.logger.info(f"✅ {self.account_type} bot quit")
